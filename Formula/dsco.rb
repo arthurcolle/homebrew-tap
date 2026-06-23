@@ -20,7 +20,7 @@ class Dsco < Formula
   def install
     system "make", "dsco", "dsco-lite", "dsc", "CC=#{ENV.cc}"
     bin.install "dsco", "dsco-lite", "dsc"
-    pkgshare.install "include/tool_embeddings.bin"
+    # tool_embeddings.bin is compiled into the binary — no external file needed
   end
 
   test do
