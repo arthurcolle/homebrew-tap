@@ -1,8 +1,8 @@
 class Dsco < Formula
   desc "Local-first self-introspecting agentic runtime written in pure C"
   homepage "https://github.com/arthurcolle/dsco"
-  url "https://github.com/arthurcolle/dsco/archive/refs/tags/v1.0.1.tar.gz"
-  sha256 "db7fa04ff09aa4f62f1e14065ae0ac6c70280fe03821dad6e8151cca04f30e69"
+  url "https://github.com/arthurcolle/dsco/archive/refs/tags/v1.0.2.tar.gz"
+  sha256 "efd9dfa352832859effa83fb052ecc6805dd3a26fc00003ede6b5f268d9de984"
   license "MIT"
   head "https://github.com/arthurcolle/dsco.git", branch: "perf/dramatic-20260621"
 
@@ -10,7 +10,6 @@ class Dsco < Formula
   depends_on "hiredis"
   depends_on "libsodium"
   depends_on "libuv"
-  # macOS-only: links Security, Metal, LocalAuthentication, Accelerate, etc.
   depends_on :macos
   depends_on "mbedtls@3"
   depends_on "readline"
@@ -19,24 +18,14 @@ class Dsco < Formula
   uses_from_macos "sqlite"
 
   def install
-    # The Makefile self-detects deps via pkg-config and links the vendored GSL
-    # that ships in the tarball. Build the release binary, the lite worker, and
-    # the dsc helper. CC must support -std=c2y (Apple clang 16+ / recent LLVM).
     system "make", "dsco", "dsco-lite", "dsc", "CC=#{ENV.cc}"
-
     bin.install "dsco", "dsco-lite", "dsc"
-
-    # The binary resolves this at runtime via <exe_dir>/../share/dsco/.
     pkgshare.install "include/tool_embeddings.bin"
   end
 
   test do
     assert_match "dsco v#{version}", shell_output("#{bin}/dsco --version") unless build.head?
     assert_match "dsco v", shell_output("#{bin}/dsco --version")
-
-    # The cwd tool runs entirely locally (no network, no API key) and exercises
-    # the tool-dispatch path end to end. (Path realpath-resolves through
-    # /private on macOS, so assert on the JSON envelope, not the exact dir.)
     assert_match(/"ok":\s*true/, shell_output("#{bin}/dsco --tool-exec cwd '{}'"))
   end
 end
